@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  role       String   // "municipal_admin" or "citizen_admin"
+  created_at DateTime @default(now())
+  problems   Problem[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Cluster {
+  id            Int       @id @default(autoincrement())
+  cluster_name  String
+  area          String
+  category      String?
+  problem_count Int       @default(0)
+  avg_sentiment Float     @default(0)
+  summary       String?
+  last_updated  DateTime  @default(now())
+  problems      Problem[]
+}
+
+model Problem {
+  id              String    @id
+  user_id         Int
+  title           String
+  description     String
+  category        String
+  location        String
+  image_url       String?
+  status          String    @default("Pending")
+  sentiment_score Float     @default(0)
+  sentiment_label String    @default("Neutral")
+  priority_score  Float     @default(0)
+  is_urgent       Boolean   @default(false)
+  cluster_id      Int?
+  created_at      DateTime  @default(now())
+  resolved_at     DateTime?
+  
+  user            User      @relation(fields: [user_id], references: [id])
+  cluster         Cluster?  @relation(fields: [cluster_id], references: [id])
+  comments        ResolvedComment[]
+  messages        Message[]
+}
+
+model Message {
+  id           Int      @id @default(autoincrement())
+  sender_id    Int
+  receiver_id  Int
+  problem_id   String?
+  message_text String
+  is_read      Boolean  @default(false)
+  created_at   DateTime @default(now())
+
+  sender       User     @relation("SentMessages", fields: [sender_id], references: [id])
+  receiver     User     @relation("ReceivedMessages", fields: [receiver_id], references: [id])
+  problem      Problem? @relation(fields: [problem_id], references: [id])
+}
+
+model ResolvedComment {
+  id         String   @id
+  problem_id String
+  citizen_id Int
+  rating     String
+  comment    String?
+  time_taken Int?     // in seconds
+  created_at DateTime @default(now())
+  
+  problem    Problem  @relation(fields: [problem_id], references: [id])
+}

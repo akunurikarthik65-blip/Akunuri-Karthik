@@ -1,0 +1,7 @@
+{
+  "name": "city view Issue Management System",
+  "description": "A full-stack municipal issue management system with role-based access, AI-driven clustering, and sentiment analysis.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
